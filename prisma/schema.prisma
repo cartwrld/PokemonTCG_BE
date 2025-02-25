@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// DROP TABLE "Ability" CASCADE; DROP TABLE "AbilityOnCard" CASCADE; DROP TABLE "Attack" CASCADE; DROP TABLE "AttackOnCard" CASCADE; DROP TABLE "PokedexNumber" CASCADE; DROP TABLE "PokemonCard" CASCADE; DROP TABLE "ResistanceOnCard" CASCADE; DROP TABLE "Set" CASCADE; DROP TABLE "Type" CASCADE; DROP TABLE "TypeOnCard" CASCADE; DROP TABLE "WeaknessOnCard" CASCADE; DROP TABLE _prisma_migrations CASCADE;
+
+model PokemonCard {
+  cardID                 Int                @id @default(autoincrement()) // ✅ Primary Key
+  id                     String             @unique // ✅ Unique Pokémon ID from API
+  cardNumber             Int
+  nationalPokedexNumbers PokedexNumber[]
+  name                   String
+  types                  TypeOnCard[]
+  hp                     Int
+  abilities              AbilityOnCard[]
+  attacks                AttackOnCard[]
+  resistances            ResistanceOnCard[]
+  weaknesses             WeaknessOnCard[]
+  evolvesFrom            String?
+  convertedRetreatCost   Int
+  retreatCost            String[] // Store as an array
+  rarity                 String
+  supertype              String
+  setName                String
+  imagesSmall            String
+  imagesLarge            String
+
+  // ✅ Reference `setID` properly
+  set   Set @relation(fields: [setID], references: [setID])
+  setID Int @map("set_setID")
+}
+
+model Set {
+  setID   Int           @id @default(autoincrement()) // ✅ Auto-incrementing primary key
+  id      String        @unique // ✅ Unique set identifier from API
+  setName String        @unique
+  series  String
+  cards   PokemonCard[]
+}
+
+model Type {
+  typeID     Int          @id @unique @default(autoincrement())
+  typeName   String       @unique
+  TypeOnCard TypeOnCard[]
+}
+
+model Ability {
+  abilityID     Int             @id @default(autoincrement())
+  abilityName   String          @unique
+  effect        String?
+  AbilityOnCard AbilityOnCard[]
+}
+
+model Attack {
+  attackID            Int            @id @default(autoincrement())
+  attackName          String         @unique
+  convertedEnergyCost Int
+  damage              String
+  text                String
+  AttackOnCard        AttackOnCard[]
+}
+
+model TypeOnCard {
+  tocID  Int         @id @default(autoincrement())
+  cardID Int
+  typeID Int
+  card   PokemonCard @relation(fields: [cardID], references: [cardID])
+  type   Type        @relation(fields: [typeID], references: [typeID])
+
+  @@unique([cardID, typeID], name: "unique_card_type") // ✅ Composite Unique Key
+}
+
+model AbilityOnCard {
+  abocID    Int         @id @default(autoincrement())
+  cardID    Int
+  abilityID Int
+  card      PokemonCard @relation(fields: [cardID], references: [cardID])
+  ability   Ability     @relation(fields: [abilityID], references: [abilityID])
+
+  @@unique([cardID, abilityID], name: "unique_card_ability") // ✅ Composite Unique Key
+}
+
+model AttackOnCard {
+  atocID   Int         @id @default(autoincrement())
+  cardID   String
+  attackID Int
+  card     PokemonCard @relation(fields: [cardID], references: [id])
+  attack   Attack      @relation(fields: [attackID], references: [attackID])
+
+  @@unique([cardID, attackID])
+}
+
+model WeaknessOnCard {
+  wocID  Int         @id @default(autoincrement())
+  cardID String
+  type   String
+  value  Int
+  card   PokemonCard @relation(fields: [cardID], references: [id])
+
+  @@unique([cardID, type]) // ✅ Ensure each (cardID, type) pair is unique
+}
+
+model ResistanceOnCard {
+  rocID  Int         @id @default(autoincrement())
+  cardID String
+  type   String
+  value  Int
+  card   PokemonCard @relation(fields: [cardID], references: [id])
+
+  @@unique([cardID, type]) // ✅ Ensure each (cardID, type) pair is unique
+}
+
+model PokedexNumber {
+  pdnID  Int         @id @default(autoincrement())
+  cardID String
+  number Int
+  card   PokemonCard @relation(fields: [cardID], references: [id])
+}
