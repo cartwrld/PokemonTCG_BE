@@ -127,7 +127,7 @@ router.get("/pdn", async (req, res) => {
 /* ====================================== POSTS ====================================== */
 
 // @ts-ignore
-router.post("/addAll", async (req: Request, res: Response) => {
+router.post("/addAllPokemon", async (req: Request, res: Response) => {
     try {
         for (let pokedexNumber = 1095; pokedexNumber <= 1250; pokedexNumber++) {
             console.log(`Fetching cards for Pokedex Number: ${pokedexNumber}`);
@@ -137,6 +137,8 @@ router.post("/addAll", async (req: Request, res: Response) => {
                 headers: {"X-Api-Key": API_KEY},
                 params: {q: `nationalPokedexNumbers:${pokedexNumber}`},
             });
+
+
 
             const cards = response.data.data;
 
@@ -171,7 +173,7 @@ router.post("/addAll", async (req: Request, res: Response) => {
                         supertype: card.supertype ? card.supertype.replace("é", "e") : card.supertype,
                         hp: parseInt(card.hp) || 0,
                         evolvesFrom: card.evolvesFrom || null,
-                        rarity: card.rarity || "Unknown",
+                        rarity: card.rarity || '',
                         convertedRetreatCost: card.convertedRetreatCost || 0,
                         imagesSmall: card.images.small,
                         imagesLarge: card.images.large,
@@ -199,7 +201,7 @@ router.post("/addAll", async (req: Request, res: Response) => {
                     await prisma.typeOnCard.upsert({
                         where: {
                             unique_card_type: {
-                                cardID: newCard.cardID,
+                                cardID: newCard.id,
                                 typeID: type.typeID,
                             },
                         },

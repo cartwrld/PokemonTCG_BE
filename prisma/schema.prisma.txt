@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// drop table "Ability" cascade; drop table "AbilityOnCard" cascade; drop table "Attack" cascade; drop table "AttackOnCard" cascade; drop table "PokedexNumber" cascade; drop table "PokemonCard" cascade; drop table "ResistanceOnCard" cascade; drop table "Set" cascade; drop table "Type" cascade; drop table "TypeOnCard" cascade; drop table "WeaknessOnCard" cascade; drop table _prisma_migrations cascade; drop table "CardImages" cascade; drop table "Rarity" cascade;
+
+model PokemonCard {
+  cardID      Int                @id @default(autoincrement())
+  id          String             @unique
+  nationalPDN PokedexNumber[]
+  cardNumber  Int
+  name        String
+  types       TypeOnCard[]
+  evolvesFrom String?
+  stage       String?
+  hp          Int
+  convRTCost  Int
+  retreatCost String[]
+  rarity      String
+  abilities   AbilityOnCard[]
+  attacks     AttackOnCard[]
+  resistances ResistanceOnCard[]
+  weaknesses  WeaknessOnCard[]
+  subtype     SubtypeOnCard[]
+  set         Set                @relation(fields: [setID], references: [id])
+  setID       String
+  images      ImagesOnCard[]
+}
+
+model CardImages {
+  ciID Int @id @default(autoincrement())
+
+  cardID String @unique
+  small  String
+  large  String
+
+  ioc ImagesOnCard[]
+}
+
+model Set {
+  setID Int @id @default(autoincrement())
+
+  id      String @unique
+  setName String @unique
+  series  String
+  symbol  String
+  logo    String
+
+  cards PokemonCard[]
+}
+
+model Type {
+  typeID Int @id @unique @default(autoincrement())
+
+  typeName String @unique
+
+  toc TypeOnCard[]
+}
+
+model Subtype {
+  subtypeID Int @id @default(autoincrement())
+
+  subtypeName String @unique
+
+  soc SubtypeOnCard[]
+}
+
+model Ability {
+  abilityID Int @id @default(autoincrement())
+
+  abilityName String  @unique
+  effect      String?
+
+  aboc AbilityOnCard[]
+}
+
+model Attack {
+  attackID Int @id @default(autoincrement())
+
+  attackName  String   @unique
+  cost        String[]
+  convNRGCost Int
+  damage      Int
+  text        String
+
+  atoc AttackOnCard[]
+}
+
+model TypeOnCard {
+  tocID Int @id @default(autoincrement())
+
+  cardID Int
+  typeID Int
+
+  card PokemonCard @relation(fields: [cardID], references: [cardID])
+  type Type        @relation(fields: [typeID], references: [typeID])
+
+  @@unique([cardID, typeID], name: "unique_card_type")
+}
+
+model SubtypeOnCard {
+  stocID Int @id @default(autoincrement())
+
+  cardID    Int
+  subtypeID Int
+
+  card    PokemonCard @relation(fields: [cardID], references: [cardID])
+  subtype Subtype     @relation(fields: [subtypeID], references: [subtypeID])
+
+  @@unique([cardID, subtypeID], name: "unique_card_subtype")
+}
+
+model AbilityOnCard {
+  abocID Int @id @default(autoincrement())
+
+  cardID    Int
+  abilityID Int
+
+  ability Ability     @relation(fields: [abilityID], references: [abilityID])
+  card    PokemonCard @relation(fields: [cardID], references: [cardID])
+
+  @@unique([cardID, abilityID], name: "unique_card_ability")
+}
+
+model AttackOnCard {
+  atocID Int @id @default(autoincrement())
+
+  cardID   String
+  attackID Int
+
+  attack Attack      @relation(fields: [attackID], references: [attackID])
+  card   PokemonCard @relation(fields: [cardID], references: [id])
+
+  @@unique([cardID, attackID])
+}
+
+model WeaknessOnCard {
+  wocID Int @id @default(autoincrement())
+
+  cardID String
+  type   String
+  value  Int
+
+  card PokemonCard @relation(fields: [cardID], references: [id])
+
+  @@unique([cardID, type])
+}
+
+model ResistanceOnCard {
+  rocID Int @id @default(autoincrement())
+
+  cardID String
+  type   String
+  value  Int
+
+  card PokemonCard @relation(fields: [cardID], references: [id])
+
+  @@unique([cardID, type])
+}
+
+model ImagesOnCard {
+  iocID Int @id @default(autoincrement())
+
+  cardID Int
+  ciID   Int
+
+  card       PokemonCard @relation(fields: [cardID], references: [cardID])
+  cardImages CardImages  @relation(fields: [ciID], references: [ciID])
+
+  @@unique([cardID, ciID], name: "unique_card_cardimages")
+}
+
+model PokedexNumber {
+  pdnID Int @id @default(autoincrement())
+
+  cardID String @unique
+  number Int
+
+  card PokemonCard @relation(fields: [cardID], references: [id])
+}
